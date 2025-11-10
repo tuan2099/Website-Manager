@@ -1,42 +1,50 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
     const { DataTypes } = Sequelize;
-    await queryInterface.createTable('RolePermissions', {
+    await queryInterface.createTable("RolePermissions", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
       },
       roleId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Roles',
-          key: 'id'
+          model: "Roles",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       permissionId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Permissions',
-          key: 'id'
+          model: "Permissions",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false
-      }
+        allowNull: false,
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
     });
 
-    await queryInterface.addIndex('RolePermissions', ['roleId', 'permissionId'], { unique: true });
+    await queryInterface.addIndex(
+      "RolePermissions",
+      ["roleId", "permissionId"],
+      { unique: true }
+    );
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('RolePermissions');
-  }
+    await queryInterface.dropTable("RolePermissions");
+  },
 };

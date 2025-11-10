@@ -1,4 +1,4 @@
-import { Model } from 'sequelize';
+import { Model } from "sequelize";
 
 export default (sequelize, DataTypes) => {
   class RefreshToken extends Model {
@@ -7,19 +7,23 @@ export default (sequelize, DataTypes) => {
     }
   }
 
-  RefreshToken.init({
-    token: {
-      type: DataTypes.STRING,
-      allowNull: false
+  RefreshToken.init(
+    {
+      token: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      expiresAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
     },
-    expiresAt: {
-      type: DataTypes.DATE,
-      allowNull: false
+    {
+      sequelize,
+      modelName: "RefreshToken",
+      timestamps: false,
     }
-  }, {
-    sequelize,
-    modelName: 'RefreshToken'
-  });
+  );
 
   return RefreshToken;
 };

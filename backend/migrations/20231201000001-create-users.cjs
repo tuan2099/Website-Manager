@@ -1,53 +1,53 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     const { DataTypes } = Sequelize;
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable("Users", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
-        primaryKey: true
+        primaryKey: true,
       },
       username: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
       },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
       },
       password: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       fullName: DataTypes.STRING,
       avatar: DataTypes.STRING,
       phone: DataTypes.STRING,
       status: {
-        type: DataTypes.ENUM('active', 'inactive', 'blocked'),
-        defaultValue: 'active'
+        type: DataTypes.ENUM("active", "inactive", "blocked"),
+        defaultValue: "active",
       },
       lastLogin: DataTypes.DATE,
       createdAt: {
         type: DataTypes.DATE,
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: DataTypes.DATE,
-        allowNull: false
-      }
+        allowNull: false,
+      },
     });
 
-    await queryInterface.addIndex('Users', ['email']);
-    await queryInterface.addIndex('Users', ['username']);
-    await queryInterface.addIndex('Users', ['status']);
+    await queryInterface.addIndex("Users", ["email"]);
+    await queryInterface.addIndex("Users", ["username"]);
+    await queryInterface.addIndex("Users", ["status"]);
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users');
-  }
+    await queryInterface.dropTable("Users");
+  },
 };

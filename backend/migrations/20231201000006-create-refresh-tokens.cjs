@@ -1,43 +1,47 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
     const { DataTypes } = Sequelize;
-    await queryInterface.createTable('RefreshTokens', {
+    await queryInterface.createTable("RefreshTokens", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
       },
       userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'Users',
-          key: 'id'
+          model: "Users",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       token: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
       },
       expiresAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false
-      }
+        allowNull: false,
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
     });
 
-    await queryInterface.addIndex('RefreshTokens', ['token']);
-    await queryInterface.addIndex('RefreshTokens', ['userId', 'expiresAt']);
+    await queryInterface.addIndex("RefreshTokens", ["token"]);
+    await queryInterface.addIndex("RefreshTokens", ["userId", "expiresAt"]);
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('RefreshTokens');
-  }
+    await queryInterface.dropTable("RefreshTokens");
+  },
 };
