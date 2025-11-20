@@ -89,6 +89,13 @@ Lệnh này sẽ tạo các bảng:
 - `website_alerts`
 - `website_notification_settings`
 - `notifications`
+- `teams`
+- `user_teams`
+- `website_members`
+- `tags`
+- `website_tags`
+- `api_tokens`
+- `webhooks`
 
 ### 5.2. Seed dữ liệu mặc định
 
@@ -98,12 +105,14 @@ npx sequelize db:seed:all
 
 Seeder sẽ tạo:
 
-- Các permissions mặc định:
+- Các permissions mặc định (tối thiểu):
   - `user:list`, `user:view`, `user:update`, `user:assignRoles`
   - `role:list`, `role:create`, `role:update`, `role:assignPermissions`
   - `permission:list`, `permission:create`, `permission:update`
   - `activityLog:list`
   - `website:create`, `website:list`, `website:view`, `website:update`, `website:delete`, `website:checkNow`, `website:viewChecks`
+  - `team:create`, `team:list`, `team:manageMembers`
+  - `apiToken:manage`, `webhook:manage`, `dashboard:view`
 - Role `admin` với đầy đủ các permissions trên (bảng `role_permissions`).
 
 ## 6. Chạy server
@@ -164,7 +173,7 @@ Lưu `accessToken` để dùng cho các request sau.
 Role `admin` đã được tạo sẵn trong seeder. Bạn có thể:
 
 - Xem trực tiếp trong DB (bảng `roles`), hoặc
-- Tạm thời truy cập `GET /roles` với token đủ quyền.
+- Tạm thởi truy cập `GET /roles` với token đủ quyền.
 
 Giả sử `adminRoleId = 1`, gán role cho user id `1`:
 
@@ -219,6 +228,20 @@ Khi bạn gọi các endpoint quản lý ở trên, middleware `activityLogger` 
 - `payload` (đã ẩn các field mật khẩu)
 - `ip`
 - `user_agent`
+
+### 8.5. Teams, Website permissions, Tags, API tokens, Webhooks, Dashboard
+
+Ngoài các endpoint đã liệt kê ở trên, hệ thống còn hỗ trợ:
+
+- Quản lý teams (`/teams`): tạo team, thêm/xoá user khỏi team, dùng cho phân quyền website theo team.
+- Quản lý quyền website chi tiết (`/websites/:id/members`): gán user vào website với quyền `view`/`edit`.
+- Quản lý tags (`/websites/:id/tags` + filter `tag=` trong `GET /websites`).
+- Import/export websites (`GET /websites/export`, `POST /websites/import`).
+- API tokens (`/api-tokens`): tạo/revoke token cho user hiện tại.
+- Webhooks (`/webhooks`): đăng ký URL nhận thông báo khi website down/SSL hoặc domain sắp hết hạn.
+- Dashboard (`/dashboard/summary`): xem tổng quan số lượng website, số đang offline, số ssl/domain sắp hết hạn, số alert đang open, số checks 24h gần nhất.
+
+Các endpoint này đều yêu cầu token và permissions tương ứng như mô tả trong README.
 
 ## 9. Ghi chú debug
 

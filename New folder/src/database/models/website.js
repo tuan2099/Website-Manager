@@ -106,6 +106,13 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'website_id',
       as: 'memberEntries',
     });
+
+    Website.belongsToMany(models.Tag, {
+      through: models.WebsiteTag,
+      foreignKey: 'website_id',
+      otherKey: 'tag_id',
+      as: 'tags',
+    });
   };
 
   return Website;

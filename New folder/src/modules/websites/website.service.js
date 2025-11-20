@@ -9,6 +9,46 @@ async function createWebsite(data, ownerUserId) {
   return website;
 }
 
+async function exportWebsites(filters = {}) {
+  const items = await listWebsites(filters);
+  return items;
+}
+
+async function importWebsites(payload, ownerUserId) {
+  if (!Array.isArray(payload)) {
+    throw new Error('Payload must be an array');
+  }
+
+  const created = [];
+  for (const item of payload) {
+    const data = {
+      name: item.name,
+      domain: item.domain,
+      status: item.status,
+      ssl_expiry_date: item.ssl_expiry_date,
+      domain_expiry_date: item.domain_expiry_date,
+      registrar: item.registrar,
+      hosting_provider: item.hosting_provider,
+      hosting_plan: item.hosting_plan,
+      server_ip: item.server_ip,
+      monitoring_enabled: item.monitoring_enabled ?? true,
+      last_backup_at: item.last_backup_at,
+      backup_provider: item.backup_provider,
+      backup_notes: item.backup_notes,
+      notes: item.notes,
+    };
+
+    const website = await db.Website.create({
+      ...data,
+      owner_user_id: ownerUserId,
+    });
+
+    created.push(website);
+  }
+
+  return created;
+}
+
 async function listDnsRecords(websiteId) {
   const website = await db.Website.findByPk(websiteId);
   if (!website) return null;
@@ -123,6 +163,22 @@ async function listWebsites(filters = {}) {
     where.owner_user_id = filters.owner_user_id;
   }
 
+  if (filters.team_id) {
+    where.team_id = filters.team_id;
+  }
+
+  if (typeof filters.monitoring_enabled === 'boolean') {
+    where.monitoring_enabled = filters.monitoring_enabled;
+  }
+
+  if (filters.registrar) {
+    where.registrar = filters.registrar;
+  }
+
+  if (filters.hosting_provider) {
+    where.hosting_provider = filters.hosting_provider;
+  }
+
   if (filters.search) {
     where[Op.or] = [
       { name: { [Op.like]: `%${filters.search}%` } },
@@ -130,8 +186,51 @@ async function listWebsites(filters = {}) {
     ];
   }
 
-  const websites = await db.Website.findAll({ where });
+  const include = [];
+
+  if (filters.tag) {
+    include.push({
+      model: db.Tag,
+      as: 'tags',
+      where: { name: filters.tag },
+      through: { attributes: [] },
+      required: true,
+    });
+  } else {
+    include.push({
+      model: db.Tag,
+      as: 'tags',
+      through: { attributes: [] },
+      required: false,
+    });
+  }
+
+  const websites = await db.Website.findAll({ where, include });
   return websites;
+}
+
+async function addTagToWebsite(websiteId, tagName, color) {
+  const website = await db.Website.findByPk(websiteId);
+  if (!website) return null;
+
+  const [tag] = await db.Tag.findOrCreate({
+    where: { name: tagName },
+    defaults: { color },
+  });
+
+  await db.WebsiteTag.findOrCreate({
+    where: { website_id: websiteId, tag_id: tag.id },
+  });
+
+  return tag;
+}
+
+async function removeTagFromWebsite(websiteId, tagId) {
+  const deleted = await db.WebsiteTag.destroy({
+    where: { website_id: websiteId, tag_id: tagId },
+  });
+
+  return deleted > 0;
 }
 
 async function getWebsiteDetail(id) {
@@ -295,6 +394,8 @@ module.exports = {
   checkNow,
   listChecks,
   getStats,
+  exportWebsites,
+  importWebsites,
   listDnsRecords,
   createDnsRecord,
   updateDnsRecord,
@@ -302,4 +403,6 @@ module.exports = {
   assignTeam,
   addWebsiteMember,
   removeWebsiteMember,
+  addTagToWebsite,
+  removeTagFromWebsite,
 };

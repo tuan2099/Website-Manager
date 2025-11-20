@@ -39,6 +39,30 @@ function registerSslCheckJob() {
           ip: null,
           user_agent: 'cron-job',
         });
+
+        const webhooks = await db.Webhook.findAll({
+          where: {
+            is_active: true,
+            event: 'ssl_expiring',
+          },
+        });
+
+        for (const hook of webhooks) {
+          await db.Notification.create({
+            website_id: website.id,
+            type: 'ssl_expiring',
+            channel: 'webhook',
+            payload: JSON.stringify({
+              webhook_id: hook.id,
+              url: hook.url,
+              event: hook.event,
+              domain: website.domain,
+              days: diffDays,
+              message,
+            }),
+            status: 'pending',
+          });
+        }
       }
     }
   });

@@ -27,12 +27,32 @@ async function createWebsite(req, res) {
 }
 
 async function listWebsites(req, res) {
-  const { status, owner_user_id, search } = req.query;
-  const websites = await websiteService.listWebsites({
+  const {
     status,
     owner_user_id,
+    team_id,
+    monitoring_enabled,
     search,
-  });
+    tag,
+    registrar,
+    hosting_provider,
+  } = req.query;
+
+  const filters = {
+    status,
+    owner_user_id,
+    team_id,
+    search,
+    tag,
+    registrar,
+    hosting_provider,
+  };
+
+  if (typeof monitoring_enabled !== 'undefined') {
+    filters.monitoring_enabled = monitoring_enabled === 'true';
+  }
+
+  const websites = await websiteService.listWebsites(filters);
   res.json(websites);
 }
 
@@ -69,6 +89,45 @@ async function deleteWebsite(req, res) {
   const ok = await websiteService.deleteWebsite(req.params.id);
   if (!ok) return res.status(404).json({ message: 'Website not found' });
   res.json({ message: 'Deleted' });
+}
+
+async function exportWebsites(req, res) {
+  const {
+    status,
+    owner_user_id,
+    team_id,
+    monitoring_enabled,
+    search,
+    tag,
+    registrar,
+    hosting_provider,
+  } = req.query;
+
+  const filters = {
+    status,
+    owner_user_id,
+    team_id,
+    search,
+    tag,
+    registrar,
+    hosting_provider,
+  };
+
+  if (typeof monitoring_enabled !== 'undefined') {
+    filters.monitoring_enabled = monitoring_enabled === 'true';
+  }
+
+  const items = await websiteService.exportWebsites(filters);
+  res.json(items);
+}
+
+async function importWebsites(req, res) {
+  try {
+    const created = await websiteService.importWebsites(req.body, req.user.id);
+    res.status(201).json(created);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 }
 
 async function checkNow(req, res) {
@@ -141,12 +200,34 @@ async function removeWebsiteMember(req, res) {
   res.json({ message: 'Website member removed' });
 }
 
+async function addTag(req, res) {
+  try {
+    const tag = await websiteService.addTagToWebsite(
+      req.params.id,
+      req.body.name,
+      req.body.color
+    );
+    if (!tag) return res.status(404).json({ message: 'Website not found' });
+    res.status(201).json(tag);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+async function removeTag(req, res) {
+  const ok = await websiteService.removeTagFromWebsite(req.params.id, req.params.tagId);
+  if (!ok) return res.status(404).json({ message: 'Tag not found on website' });
+  res.json({ message: 'Tag removed from website' });
+}
+
 module.exports = {
   createWebsite,
   listWebsites,
   getWebsite,
   updateWebsite,
   deleteWebsite,
+  exportWebsites,
+  importWebsites,
   checkNow,
   listChecks,
   getStats,
@@ -156,4 +237,6 @@ module.exports = {
   deleteDnsRecord,
   addWebsiteMember,
   removeWebsiteMember,
+  addTag,
+  removeTag,
 };

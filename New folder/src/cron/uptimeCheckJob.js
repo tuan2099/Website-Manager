@@ -125,6 +125,29 @@ async function runUptimeCheck() {
             }),
             status: 'pending', // stub: chờ hệ thống gửi thực tế (email/webhook) sau
           });
+
+          const webhooks = await db.Webhook.findAll({
+            where: {
+              is_active: true,
+              event: 'uptime_down',
+            },
+          });
+
+          for (const hook of webhooks) {
+            await db.Notification.create({
+              website_id: website.id,
+              type: 'uptime_down',
+              channel: 'webhook',
+              payload: JSON.stringify({
+                webhook_id: hook.id,
+                url: hook.url,
+                event: hook.event,
+                domain: website.domain,
+                message: alertMessage,
+              }),
+              status: 'pending',
+            });
+          }
         }
       }
     }

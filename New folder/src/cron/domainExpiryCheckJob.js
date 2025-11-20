@@ -56,6 +56,29 @@ async function runDomainExpiryCheck() {
           }),
           status: 'pending',
         });
+
+        const webhooks = await db.Webhook.findAll({
+          where: {
+            is_active: true,
+            event: 'domain_expiry',
+          },
+        });
+
+        for (const hook of webhooks) {
+          await db.Notification.create({
+            website_id: website.id,
+            type: 'domain_expiry',
+            channel: 'webhook',
+            payload: JSON.stringify({
+              webhook_id: hook.id,
+              url: hook.url,
+              event: hook.event,
+              domain: website.domain,
+              days: diffDays,
+            }),
+            status: 'pending',
+          });
+        }
       }
 
       await db.ActivityLog.create({
